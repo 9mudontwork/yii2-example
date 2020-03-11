@@ -26,6 +26,8 @@ $this->params['breadcrumbs'][] = $this->title;
         ]) ?>
     </p>
 
+    <img src="http://localhost:8080/file-example/view-file?id=87ce4bad5af83950ce911965ef0a006f" alt="">
+
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [

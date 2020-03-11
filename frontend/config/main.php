@@ -5,6 +5,7 @@ $params = array_merge(
     require __DIR__ . '/params.php',
     require __DIR__ . '/params-local.php'
 );
+$perfectRule = '(^[-\w]+|\d+)+';
 
 return [
     'id' => 'app-frontend',
@@ -37,16 +38,14 @@ return [
             'errorAction' => 'site/error',
         ],
         'urlManager' => [
+            'class' => 'yii\web\UrlManager',
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                '<module:\w+>/<controller:\w+>/<id:\d+>' => '<module>/<controller>/view',
-                '<module:\w+>/<controller:\w+>/<action:\w+>/<id:\d+>' => '<module>/<controller>/<action>',
-                '<module:\w+>/<controller:\w+>/<action:\w+>' => '<module>/<controller>/<action>',
 
-                '<controller:\w+>/<id:\d+>' => '<controller>/view',
-                '<controller:\w+>/<action:\w+>/<id:\d+>' => '<controller>/<action>',
-                '<controller:\w+>/<action:\w+>' => '<controller>/<action>',
+                // "<controller:{$perfectRule}>/<id:{$perfectRule}>" => "<controller>/view",
+                "<controller:{$perfectRule}>/<action:{$perfectRule}>/<id:\d+>" => "<controller>/<action>",
+                // "<controller:{$perfectRule}>/<action:{$perfectRule}>" => "<controller>/<action>",
             ],
         ],
     ],

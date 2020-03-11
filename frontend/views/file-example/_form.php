@@ -12,9 +12,11 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'file_code')->textarea(['rows' => 6]) ?>
-
-    <?= $form->field($model, 'file_key')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'file_code', [])->fileInput([
+        'id' => 'filer_input',
+        'multiple' => false,
+        // 'accept' => 'image/*'
+    ]) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>

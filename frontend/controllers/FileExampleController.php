@@ -9,14 +9,11 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
-/**
- * FileExampleController implements the CRUD actions for FileExample model.
- */
+use common\helpers\HandleFile;
+
 class FileExampleController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
+
     public function behaviors()
     {
         return [
@@ -29,10 +26,6 @@ class FileExampleController extends Controller
         ];
     }
 
-    /**
-     * Lists all FileExample models.
-     * @return mixed
-     */
     public function actionIndex()
     {
         $searchModel = new FileExampleSearch();
@@ -44,12 +37,6 @@ class FileExampleController extends Controller
         ]);
     }
 
-    /**
-     * Displays a single FileExample model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
         return $this->render('view', [
@@ -57,17 +44,53 @@ class FileExampleController extends Controller
         ]);
     }
 
-    /**
-     * Creates a new FileExample model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
+    public function actionFile($id, $width = null, $height = null)
+    {
+        \console\P::R($id);
+        $model = new FileExample();
+
+        $file = $model->find()->where(['file_key' => $id])->one();
+
+        if (!empty($file)) {
+            $file = (new HandleFile)->viewFile($file->file_code);
+            return $file;
+        } else {
+            throw new \yii\web\HttpException(404, 'Page not found.');
+        }
+    }
+
+    public function actionDownloadFile($id)
+    {
+        $model = new FileExample();
+
+        $file = $model->find()->where(['file_key' => $id])->one();
+
+        if (!empty($file)) {
+            $file = (new HandleFile)->downloadFile($file->file_code);
+            return $file;
+        } else {
+            throw new \yii\web\HttpException(404, 'Page not found.');
+        }
+    }
+
     public function actionCreate()
     {
         $model = new FileExample();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($model->load(Yii::$app->request->post())) {
+
+            $handleFile = new HandleFile();
+            $handleFile->useIn('common', '/storage/upload-xxxx/');
+            $fileCode = $handleFile->doUpload('file_code', $model);
+
+            $model->file_code = $fileCode;
+            $model->file_key = $handleFile->getFileKey($fileCode);
+
+            \console\P::R($fileCode);
+
+            if ($model->save()) {
+                // 
+            }
         }
 
         return $this->render('create', [
@@ -75,13 +98,6 @@ class FileExampleController extends Controller
         ]);
     }
 
-    /**
-     * Updates an existing FileExample model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
@@ -95,13 +111,6 @@ class FileExampleController extends Controller
         ]);
     }
 
-    /**
-     * Deletes an existing FileExample model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
@@ -109,13 +118,7 @@ class FileExampleController extends Controller
         return $this->redirect(['index']);
     }
 
-    /**
-     * Finds the FileExample model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return FileExample the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
+
     protected function findModel($id)
     {
         if (($model = FileExample::findOne($id)) !== null) {
