@@ -5,7 +5,9 @@ $params = array_merge(
     require __DIR__ . '/params.php',
     require __DIR__ . '/params-local.php'
 );
-$perfectRule = '(^[-\w]+|\d+)+';
+
+$string = '([-\w]+|\d+)';
+$number = '\d+';
 
 return [
     'id' => 'app-frontend',
@@ -41,11 +43,21 @@ return [
             'class' => 'yii\web\UrlManager',
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            // 'suffix' => '/',
+            // 'normalizer' => [
+            //     // 'class' => 'yii\web\UrlNormalizer',
+            //     // 'action' => \yii\web\UrlNormalizer::ACTION_REDIRECT_TEMPORARY,
+            // ],
             'rules' => [
+                // normal route
+                "<controller:{$string}>" => "<controller>/index",
+                "<controller:{$string}>/<id:{$number}>" => "<controller>/view",
+                "<controller:{$string}>/<action:{$string}>/<id:{$string}>" => "<controller>/<action>",
+                "<controller:{$string}>/<action:{$string}>" => "<controller>/<action>",
 
-                // "<controller:{$perfectRule}>/<id:{$perfectRule}>" => "<controller>/view",
-                "<controller:{$perfectRule}>/<action:{$perfectRule}>/<id:\d+>" => "<controller>/<action>",
-                // "<controller:{$perfectRule}>/<action:{$perfectRule}>" => "<controller>/<action>",
+                // file route
+                "<controller:{$string}>/<action:{$string}>/<id:{$string}>/<width:{$string}>" => "<controller>/<action>",
+                "<controller:{$string}>/<action:{$string}>/<id:{$string}>/<width:{$string}>/<height:{$string}>" => "<controller>/<action>",
             ],
         ],
     ],

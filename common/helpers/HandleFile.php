@@ -42,40 +42,56 @@ class HandleFile
         try {
             // have model
             if ($this->issetNotEmpty($model)) {
-                // have field
-                if ($this->issetNotEmpty($field)) {
-                    // one field
-                    if (!is_array($field)) {
+                // one field
+                if (!is_array($field)) {
 
-                        $files = UploadedFile::getInstances($model, $field);
+                    $files = UploadedFile::getInstances($model, $field);
 
-                        if (count($files) == 1) {
-                            // one file
-                            if ($this->issetNotEmpty($files)) {
+                    if (count($files) == 1) {
+                        // one file
+                        if ($this->issetNotEmpty($files)) {
 
-                                return $this->oneFile($files);
-                            } else {
-                                // upload fail
-                                return false;
-                            }
+                            return $this->oneFile($files);
                         } else {
-                            // multiple file
-                            if ($this->issetNotEmpty($files)) {
-
-                                return $this->manyFile($files);
-                            } else {
-                                // upload fail
-                                return false;
-                            }
+                            // upload fail
+                            return false;
                         }
                     } else {
-                        // multi field
+                        // multiple file
+                        if ($this->issetNotEmpty($files)) {
+
+                            return $this->manyFile($files);
+                        } else {
+                            // upload fail
+                            return false;
+                        }
                     }
                 } else {
-                    // not have field
+                    // multi field
                 }
             } else {
                 // not have model
+                $files = UploadedFile::getInstancesByName($field);
+
+                if (count($files) == 1) {
+                    // one file
+                    if ($this->issetNotEmpty($files)) {
+
+                        return $this->oneFile($files);
+                    } else {
+                        // upload fail
+                        return false;
+                    }
+                } else {
+                    // multiple file
+                    if ($this->issetNotEmpty($files)) {
+
+                        return $this->manyFile($files);
+                    } else {
+                        // upload fail
+                        return false;
+                    }
+                }
             }
         } catch (\Throwable $th) {
             throw $th;
@@ -95,7 +111,7 @@ class HandleFile
     {
         $jsonFileData = [];
         foreach ($files as $file) {
-            $jsonFileData = $this->setupFileCode($file);
+            $jsonFileData[] = $this->setupFileCode($file);
         }
 
         return json_encode($jsonFileData);

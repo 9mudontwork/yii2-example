@@ -14,9 +14,12 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'file_code', [])->fileInput([
         'id' => 'filer_input',
-        'multiple' => false,
+        'multiple' => true,
         // 'accept' => 'image/*'
-    ]) ?>
+    ])->label('upload with model') ?>
+
+    <label class="control-label" for="filer_input">upload without model</label>
+    <input type="file" name="files[]" id="filer_input_nomodel" multiple="multiple">
 
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>

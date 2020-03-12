@@ -46,7 +46,6 @@ class FileExampleController extends Controller
 
     public function actionFile($id, $width = null, $height = null)
     {
-        \console\P::R($id);
         $model = new FileExample();
 
         $file = $model->find()->where(['file_key' => $id])->one();
@@ -81,12 +80,13 @@ class FileExampleController extends Controller
 
             $handleFile = new HandleFile();
             $handleFile->useIn('common', '/storage/upload-xxxx/');
+
             $fileCode = $handleFile->doUpload('file_code', $model);
+            $this->insertFile($fileCode, $model);
 
-            $model->file_code = $fileCode;
-            $model->file_key = $handleFile->getFileKey($fileCode);
+            $fileCode2 = $handleFile->doUpload('files');
+            $this->insertFile($fileCode2, $model);
 
-            \console\P::R($fileCode);
 
             if ($model->save()) {
                 // 
@@ -96,6 +96,34 @@ class FileExampleController extends Controller
         return $this->render('create', [
             'model' => $model,
         ]);
+    }
+
+    private function insertFile($fileCode, $model)
+    {
+        if (!empty($fileCode)) {
+            $fileCode = json_decode($fileCode);
+            $modelTableName = FileExample::tableName();
+
+            $fileRow = [];
+            foreach ($fileCode as $file) {
+                $fileRow[] = [
+                    'file_code' => json_encode($file),
+                    'file_key' => $file->key,
+                ];
+            }
+
+            $fileField = [
+                'file_code',
+                'file_key',
+            ];
+
+            \console\P::R($fileRow);
+
+            Yii::$app->db
+                ->createCommand()
+                ->batchInsert($modelTableName, $fileField, $fileRow)
+                ->execute();
+        }
     }
 
     public function actionUpdate($id)
