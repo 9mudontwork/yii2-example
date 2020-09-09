@@ -3,13 +3,13 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $model frontend\models\FileExample */
+/* @var $model frontend\models\files */
 
-$this->title = 'Create File Example';
-$this->params['breadcrumbs'][] = ['label' => 'File Examples', 'url' => ['index']];
+$this->title = 'Create Files';
+$this->params['breadcrumbs'][] = ['label' => 'Files', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="file-example-create">
+<div class="files-create">
 
     <h1><?= Html::encode($this->title) ?></h1>
 

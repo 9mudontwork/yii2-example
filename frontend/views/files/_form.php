@@ -4,15 +4,23 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model frontend\models\FileExample */
+/* @var $model frontend\models\files */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="file-example-form">
+<div class="files-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'file_code', [])->fileInput([
+    <?php
+    // $form->field($model, 'file_key')->textInput(['maxlength' => true]) 
+    ?>
+
+    <?php
+    // $form->field($model, 'file_contents')->textarea(['rows' => 6]) 
+    ?>
+
+    <?= $form->field($model, 'file_contents', [])->fileInput([
         'id' => 'filer_input',
         'multiple' => true,
         // 'accept' => 'image/*'

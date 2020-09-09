@@ -5,20 +5,20 @@ namespace frontend\models;
 use Yii;
 
 /**
- * This is the model class for table "file_example".
+ * This is the model class for table "files".
  *
  * @property int $id
- * @property string|null $file_code
  * @property string|null $file_key
+ * @property string|null $file_contents
  */
-class FileExample extends \yii\db\ActiveRecord
+class Files extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'file_example';
+        return 'files';
     }
 
     /**
@@ -27,7 +27,7 @@ class FileExample extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['file_code'], 'string'],
+            [['file_contents'], 'string'],
             [['file_key'], 'string', 'max' => 255],
         ];
     }
@@ -39,8 +39,8 @@ class FileExample extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'file_code' => 'File Code',
             'file_key' => 'File Key',
+            'file_contents' => 'File Contents',
         ];
     }
 }

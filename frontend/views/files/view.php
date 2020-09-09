@@ -4,14 +4,14 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
-/* @var $model frontend\models\FileExample */
+/* @var $model frontend\models\files */
 
 $this->title = $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'File Examples', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Files', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
-<div class="file-example-view">
+<div class="files-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -26,14 +26,12 @@ $this->params['breadcrumbs'][] = $this->title;
         ]) ?>
     </p>
 
-    <img src="http://localhost:8080/file-example/view-file?id=87ce4bad5af83950ce911965ef0a006f" alt="">
-
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
             'id',
-            'file_code:ntext',
             'file_key',
+            'file_contents:ntext',
         ],
     ]) ?>
 

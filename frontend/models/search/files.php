@@ -4,12 +4,12 @@ namespace frontend\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use frontend\models\FileExample;
+use frontend\models\files as filesModel;
 
 /**
- * FileExampleSearch represents the model behind the search form of `frontend\models\FileExample`.
+ * files represents the model behind the search form of `frontend\models\files`.
  */
-class FileExampleSearch extends FileExample
+class files extends filesModel
 {
     /**
      * {@inheritdoc}
@@ -18,7 +18,7 @@ class FileExampleSearch extends FileExample
     {
         return [
             [['id'], 'integer'],
-            [['file_code', 'file_key'], 'safe'],
+            [['file_key', 'file_contents'], 'safe'],
         ];
     }
 
@@ -40,7 +40,7 @@ class FileExampleSearch extends FileExample
      */
     public function search($params)
     {
-        $query = FileExample::find();
+        $query = filesModel::find();
 
         // add conditions that should always apply here
 
@@ -61,8 +61,8 @@ class FileExampleSearch extends FileExample
             'id' => $this->id,
         ]);
 
-        $query->andFilterWhere(['like', 'file_code', $this->file_code])
-            ->andFilterWhere(['like', 'file_key', $this->file_key]);
+        $query->andFilterWhere(['like', 'file_key', $this->file_key])
+            ->andFilterWhere(['like', 'file_contents', $this->file_contents]);
 
         return $dataProvider;
     }
