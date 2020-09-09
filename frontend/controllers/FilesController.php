@@ -54,9 +54,17 @@ class FilesController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
+        $fileContents = $id;
+
+        $fileUrl = _Files::getFileUrl($fileContents);
+
+        // http://localhost:8080/files/view?id=LrbjGiVvjWF2NvbW1vbi9maWxlcy1zdG9yYWdlL3w3ZTcyMjNkZTdmMzBjNzc5MWI2MWYyYzlmNzg3ZTEyOS5wbmd8aW1hZ2UvcG5n
+
+        return _Files::revealFile($fileContents);
+
+        // return $this->render('view', [
+        //     'model' => $this->findModel($id),
+        // ]);
     }
 
     /**
@@ -75,16 +83,18 @@ class FilesController extends Controller
             $fileUploadContents = _Files::upload([
                 'attribute' => 'file_contents',
                 'model' => $model,
-                'folder' => '/common/files-storage/'
+                'folderPath' => '/common/files-storage/'
             ]);
 
-            _Files::saveOneToOne($model, $fileUploadContents->getArray());
+            $fileUploadContents->saveOnTable($model);
 
 
             // บันทึก หลายรูป ใน 1 field
-            $model->file_contents = $fileUploadContents->getJsonString();
+            $model->file_key = _Files::generateKey();
+            $model->file_contents = $fileUploadContents->multipleSave();
 
             if ($model->save()) {
+                _::print($fileUploadContents->fileContents);
                 // return $this->redirect(['view', 'id' => $model->id]);
             }
         }

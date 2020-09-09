@@ -1,4 +1,46 @@
 <?php
+// ไฟล์นี้ไม่ควรถูกแก้ไข
+// muhammad
+
+// _Files::upload จะ return ค่า เป็น array หรือ null เสมอ
+
+/**  ===================================================== */
+//              ตัวอย่างในการใช้บันทึกรูป
+//              บันทึก 1 รูป ต่อ 1 row
+/*
+
+$fileUploadContents = _Files::upload([
+    'attribute' => 'file_contents',
+    'model' => $model,
+    'folderPath' => '/common/files-storage/'
+]);
+
+$fileUploadContents->saveOnTable($model);
+
+*/
+/**  ===================================================== */
+
+
+
+
+/**  ===================================================== */
+//              ตัวอย่างในการใช้บันทึกรูป
+//              บันทึก หลายรูป ใน 1 field
+/*
+
+$fileUploadContents = _Files::upload([
+    'attribute' => 'file_contents',
+    'model' => $model,
+    'folderPath' => '/common/files-storage/'
+]);
+
+$model->file_key = _Files::generateKey();
+$model->file_contents = $fileUploadContents->multipleSave();
+
+$fileUploadContents->saveOnTable($model);
+
+*/
+/**  ===================================================== */
 
 namespace common\helpers;
 
@@ -11,24 +53,27 @@ use yii\web\Response;
 
 class _Files
 {
-    private $basePath;
+    // ตั้งค่า fiels ของ table ตรงนี้ ถ้าต้องการใช้ table
+    public $fieldFileKey = 'file_key';
+    public $fieldFileContent = 'file_content';
 
-    public $folder;
-    public $model;
-    public $prefixName;
-    public $alias;
+
+
+
+
+
 
     public $setting;
-    public $postFiles;
 
-    public $fileContents;
-    public $jsonFileContents;
+    public $folderPath;
 
-    public $pathFolder;
+    public $fileContents = null;
 
-    public function __construct($setting)
+
+
+
+    public function __construct($setting = null)
     {
-        $this->postFiles = $_FILES;
         $this->setting = $setting;
     }
 
@@ -43,16 +88,15 @@ class _Files
 
     public function tryUpload()
     {
+        if (!$this->setting) return null;
+
         [
 
             'attribute' => $attributeName,
             'model' => $model,
-            'folder' => $this->pathFolder
+            'folderPath' => $this->folderPath
 
         ] = $this->setting;
-
-
-        $fileContents = null;
 
         if (isset($model) && !is_null($model)) {
             $fileContents = $this->uploadWithModel($model, $attributeName);
@@ -79,7 +123,7 @@ class _Files
         $files = UploadedFile::getInstances($model, $attributeName);
 
         if (count($files) >= 1) {
-            return (isset($files) && !empty($files)) ? $this->getJsonFileContents($files) : null;
+            return (isset($files) && !empty($files)) ? $this->getFileContents($files) : null;
         } else {
             return null;
         }
@@ -97,7 +141,7 @@ class _Files
         $files = UploadedFile::getInstancesByName($attributeName);
 
         if (count($files) >= 1) {
-            return (isset($files) && !empty($files)) ? $this->getJsonFileContents($files) : null;
+            return (isset($files) && !empty($files)) ? $this->getFileContents($files) : null;
         } else {
             return null;
         }
@@ -108,14 +152,19 @@ class _Files
 
     /** ========== method สุดท้าย เพื่อดึงค่า json file content ที่ถูกสร้าง ========== */
 
-    public function getArray()
+    public function save()
     {
-        return $this->jsonFileContents;
+        return json_encode($this->fileContents[0]);
     }
 
-    public function getJsonString()
+    public function multipleSave()
     {
-        return json_encode($this->jsonFileContents);
+        return json_encode($this->fileContents);
+    }
+
+    public function getJson()
+    {
+        return json_encode($this->fileContents);
     }
 
 
@@ -124,16 +173,14 @@ class _Files
 
     /** ========== สร้าง json string ที่จะ return ออกไป ========== */
 
-    public function getJsonFileContents($files)
+    public function getFileContents($files)
     {
-        $jsonFileContents = [];
+        $summaryFileContents = [];
         foreach ($files as $file) {
-            $jsonFileContents[] = $this->setupFileContents($file);
+            $summaryFileContents[] = $this->setupFileContents($file);
         }
 
-        $this->jsonFileContents = $jsonFileContents;
-
-        return json_encode($jsonFileContents);
+        return $summaryFileContents;
     }
 
 
@@ -145,32 +192,56 @@ class _Files
     {
 
         $fileName = $this->generateFileName($file);
-        $pathFolder = $this->getPathFolder();
-        $this->createDirectory($pathFolder);
+        $folderPath = $this->normalizefolderPath();
+        $this->createDirectory($folderPath);
 
-        $jsonFileContent = [];
-        if ($file->saveAs($pathFolder . $fileName)) {
-            $jsonFileContent = [
-                'key' => $this->pullFileKey($fileName),
+        $allFileContents = [];
+        if ($file->saveAs($folderPath . $fileName)) {
+            $allFileContents = [
+                'key' => $this->generateKey4File(),
                 'originalName' => $file->baseName . '.' . $file->extension,
                 'name' => $fileName,
                 'extension' => $file->extension,
                 'size' => $file->size,
                 'type' => $file->type,
-                'folder' => $this->pathFolder,
+                'folder' => $this->folderPath,
             ];
         }
 
-        return $jsonFileContent;
+        return $allFileContents;
     }
 
     /** ========== ฟังก์ชั่น ดึง key เพื่อเก็บลง database ========== */
-    private function pullFileKey($fileName)
+    public function generateKey4File($length = 10)
     {
-        $fileName = explode('.', $fileName);
-        $fileName = $fileName[0];
+        $randomString = substr(
+            str_shuffle(
+                str_repeat(
+                    $x = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    ceil($length / strlen($x))
+                )
+            ),
+            1,
+            $length
+        );
 
-        return $fileName;
+        return md5($randomString . time() . uniqid());
+    }
+
+    public static function generateKey($length = 10)
+    {
+        $randomString = substr(
+            str_shuffle(
+                str_repeat(
+                    $x = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    ceil($length / strlen($x))
+                )
+            ),
+            1,
+            $length
+        );
+
+        return md5($randomString . time() . uniqid());
     }
 
 
@@ -194,20 +265,20 @@ class _Files
 
     /** ========== เรียก path ที่ถูกต้องของ folder ที่เก็บ ========== */
 
-    private function getPathFolder()
+    private function normalizefolderPath()
     {
-        $pathFolder = realpath(dirname(__FILE__) . '/../../') . $this->pathFolder;
-        $pathFolder = str_replace('\\', '/', $pathFolder);
-        $pathFolder = explode('/', $pathFolder);
+        $folderPath = realpath(dirname(__FILE__) . '/../../') . $this->folderPath;
+        $folderPath = str_replace('\\', '/', $folderPath);
+        $folderPath = explode('/', $folderPath);
 
-        $normalizePathFolder = join('/', array_merge($pathFolder));
-        $normalizePathFolder = preg_replace('/(\/+)/', '/', $normalizePathFolder);
+        $normalizefolderPath = join('/', array_merge($folderPath));
+        $normalizefolderPath = preg_replace('/(\/+)/', '/', $normalizefolderPath);
 
-        if (substr($normalizePathFolder, -1) != '/') {
-            $normalizePathFolder = $normalizePathFolder . '/';
+        if (substr($normalizefolderPath, -1) != '/') {
+            $normalizefolderPath = $normalizefolderPath . '/';
         }
 
-        return $normalizePathFolder;
+        return $normalizefolderPath;
     }
 
 
@@ -217,10 +288,10 @@ class _Files
 
     /** ========== สร้าง folder ========== */
 
-    private function createDirectory($pathFolder)
+    private function createDirectory($folderPath)
     {
-        if (!is_dir($pathFolder)) {
-            FileHelper::createDirectory($pathFolder, 0777);
+        if (!is_dir($folderPath)) {
+            FileHelper::createDirectory($folderPath, 0777);
         }
     }
 
@@ -255,28 +326,38 @@ class _Files
 
     /** ========== ฟังก์ชั่นบันทึก 1 รูป ต่อ 1 row ========== */
 
-    public static function saveOneToOne($model, array $fileContent)
+    public function saveOnTable($model)
     {
+
+        $fileContent = $this->fileContents;
+
         if (!empty($fileContent)) {
             $modelTableName = $model->tableName();
 
             $fileRow = [];
             foreach ($fileContent as $file) {
                 $fileRow[] = [
-                    'file_key' => $file['key'],
-                    'file_contents' => json_encode($file),
+                    $this->fieldFileKey => $file['key'],
+                    $this->fieldFileContent => json_encode($file),
                 ];
             }
 
             $fileField = [
-                'file_key',
-                'file_contents',
+                $this->fieldFileKey,
+                $this->fieldFileContent,
             ];
 
-            Yii::$app->db
+            $batchInsert = Yii::$app->db
                 ->createCommand()
                 ->batchInsert($modelTableName, $fileField, $fileRow)
                 ->execute();
+
+            // $batchInsert จะ return ออกมาเป็นตัวเลขจำนวนของ files ที่บันทึก
+            if (!empty($batchInsert) && is_numeric($batchInsert)) {
+                return true;
+            } else {
+                return null;
+            }
         }
     }
 
@@ -298,40 +379,51 @@ class _Files
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
-    public static function getOriginalFileName(array $jsonFileContent)
+    public static function mutateFileContents($fileContents)
     {
-        $file = $jsonFileContent;
+        return is_array($fileContents) ? $fileContents : json_decode($fileContents, true);
+    }
+
+    public static function getOriginalFileName($fileContents)
+    {
+        $file = self::mutateFileContents($fileContents);
         return isset($file['originalName']) ? $file['originalName'] : null;
     }
 
-    public static function getFileName(array $jsonFileContent)
+    public static function getFileName($fileContents)
     {
-        $file = $jsonFileContent;
+        $file = self::mutateFileContents($fileContents);
         return isset($file['name']) ? $file['name'] : null;
     }
 
-    public static function getFileKey(array $jsonFileContent)
+    public static function getFileKey($fileContents)
     {
-        $file = $jsonFileContent;
-        return isset($file['name']) ? $file['name'] : null;
+        $file = self::mutateFileContents($fileContents);
+        return isset($file['key']) ? $file['key'] : null;
     }
 
-    public static function getFileExtension(array $jsonFileContent)
+    public static function getFileExtension($fileContents)
     {
-        $file = $jsonFileContent;
+        $file = self::mutateFileContents($fileContents);
         return isset($file['extension']) ? $file['extension'] : null;
     }
 
-    public static function getFileSize(array $jsonFileContent)
+    public static function getFileSize($fileContents)
     {
-        $file = $jsonFileContent;
+        $file = self::mutateFileContents($fileContents);
         return isset($file['size']) ? $file['size'] : null;
     }
 
-    public static function getFileType(array $jsonFileContent)
+    public static function getFileType($fileContents)
     {
-        $file = $jsonFileContent;
+        $file = self::mutateFileContents($fileContents);
         return isset($file['type']) ? $file['type'] : null;
+    }
+
+    public static function getFolderPath($fileContents)
+    {
+        $file = self::mutateFileContents($fileContents);
+        return isset($file['folder']) ? $file['folder'] : null;
     }
 
 
@@ -341,23 +433,45 @@ class _Files
 
     /** ========== ฟังก์ชั่นเกี่ยวกับเรียกรูปภาพ ========== */
 
-    public function getFileUrl($jsonFileData)
+    public static function encodeText($text)
     {
-        $file = json_decode($jsonFileData, true);
-        $filePath = self::getCorrectFolder($file['folder']) . $file['name'];
-
-        return Url::base(true) . $filePath;
+        $text = str_replace(array('+', '/'), array('-', '_'), base64_encode($text));
+        $text = substr_replace($text, 'rbjGiVvjWF', 1, 0);
+        return strrev($text);
     }
 
-    public function viewFile($fileCode)
+    public static function decodeText($text)
+    {
+        $text = strrev($text);
+        $text = str_replace('rbjGiVvjWF', '', $text);
+        $text = base64_decode(str_replace(array('-', '_'), array('+', '/'), $text));
+        return $text;
+    }
+
+    public static function getFileUrl($fileContents)
+    {
+        $file = json_decode($fileContents, true);
+        $encodeText = self::encodeText($file['folder'] . '|' . $file['name'] . '|' . $file['type']);
+
+        return $encodeText;
+    }
+
+    public static function revealFile($urlEncode)
     {
         try {
             $response = new Response;
-            return $response->sendFile($this->getLocalFilePath($fileCode), $this->getFileName($fileCode), [
-                'mimeType' => $this->getFileType($fileCode),
+
+            $urlEncode = self::decodeText($urlEncode);
+            $file = explode('|', $urlEncode);
+
+            $filePath = realpath(dirname(__FILE__) . '/../../') . $file[0] . $file[1];
+
+            return $response->sendFile($filePath, $file[1], [
+                'mimeType' => $file[2],
                 'inline' => true,
             ]);
         } catch (\Throwable $th) {
+            // return $th->getMessage();
             throw new \yii\web\HttpException(404, 'File not found.');
         }
     }

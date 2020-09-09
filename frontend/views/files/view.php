@@ -1,6 +1,8 @@
 <?php
 
+use common\helpers\_;
 use yii\helpers\Html;
+use common\helpers\_Files;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
@@ -31,7 +33,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'attributes' => [
             'id',
             'file_key',
-            'file_contents:ntext',
+            [
+                'attribute' => 'file_contents',
+                'label' => 'file_contents',
+                'value' => function ($model) {
+                    $fileName = _Files::getFileName($model->file_contents);
+                    $folderPath = _Files::getFolderPath($model->file_contents);
+
+                    $fileUrl = _Files::getFileUrl($model->file_contents);
+
+                    _::print_r($fileUrl);
+                },
+            ],
         ],
     ]) ?>
 
