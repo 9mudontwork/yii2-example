@@ -52,7 +52,7 @@ class FilesController extends Controller
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionViews($id)
     {
         $fileContents = $id;
 
@@ -65,6 +65,14 @@ class FilesController extends Controller
         // return $this->render('view', [
         //     'model' => $this->findModel($id),
         // ]);
+    }
+
+    public function actionView($id)
+    {
+
+        return $this->render('view', [
+            'model' => $this->findModel($id),
+        ]);
     }
 
     /**

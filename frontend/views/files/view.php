@@ -42,7 +42,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     $fileUrl = _Files::getFileUrl($model->file_contents);
 
-                    _::print_r($fileUrl);
+                    // _::print_r($fileUrl);
+                    echo '<img src="http://localhost:8080/files/views?id=' . $fileUrl . '" alt="" srcset="">';
                 },
             ],
         ],
