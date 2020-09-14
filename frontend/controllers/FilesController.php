@@ -16,9 +16,7 @@ use frontend\models\search\files as filesSearch;
  */
 class FilesController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
+
     public function behaviors()
     {
         return [
@@ -31,10 +29,6 @@ class FilesController extends Controller
         ];
     }
 
-    /**
-     * Lists all files models.
-     * @return mixed
-     */
     public function actionIndex()
     {
         $searchModel = new filesSearch();
@@ -46,25 +40,10 @@ class FilesController extends Controller
         ]);
     }
 
-    /**
-     * Displays a single files model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionViews($id)
     {
-        $fileContents = $id;
-
-        $fileUrl = _Files::getFileUrl($fileContents);
-
-        // http://localhost:8080/files/view?id=LrbjGiVvjWF2NvbW1vbi9maWxlcy1zdG9yYWdlL3w3ZTcyMjNkZTdmMzBjNzc5MWI2MWYyYzlmNzg3ZTEyOS5wbmd8aW1hZ2UvcG5n
-
-        return _Files::revealFile($fileContents);
-
-        // return $this->render('view', [
-        //     'model' => $this->findModel($id),
-        // ]);
+        $fileName = $id;
+        return _Files::render(_Files::exampleFolder, $fileName);
     }
 
     public function actionView($id)
@@ -75,11 +54,6 @@ class FilesController extends Controller
         ]);
     }
 
-    /**
-     * Creates a new files model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
     public function actionCreate()
     {
         $model = new files();
@@ -91,10 +65,10 @@ class FilesController extends Controller
             $fileUploadContents = _Files::upload([
                 'attribute' => 'file_contents',
                 'model' => $model,
-                'folderPath' => '/common/files-storage/'
+                'folderPath' => _Files::exampleFolder
             ]);
 
-            $fileUploadContents->saveOnTable($model);
+            // $fileUploadContents->rowSave($model);
 
 
             // บันทึก หลายรูป ใน 1 field
@@ -115,13 +89,6 @@ class FilesController extends Controller
         ]);
     }
 
-    /**
-     * Updates an existing files model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
 
@@ -142,13 +109,7 @@ class FilesController extends Controller
 
 
 
-    /**
-     * Deletes an existing files model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
+
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
@@ -156,13 +117,7 @@ class FilesController extends Controller
         return $this->redirect(['index']);
     }
 
-    /**
-     * Finds the files model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return files the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
+
     protected function findModel($id)
     {
         if (($model = files::findOne($id)) !== null) {

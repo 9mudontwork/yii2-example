@@ -1,5 +1,5 @@
 <?php
-// ไฟล์นี้ไม่ควรถูกแก้ไข
+// ฟังก์ชั่นในไฟล์นี้ไม่ควรถูกแก้ไข
 // muhammad
 
 // _Files::upload จะ return ค่า เป็น array หรือ null เสมอ
@@ -15,7 +15,7 @@ $fileUploadContents = _Files::upload([
     'folderPath' => '/common/files-storage/'
 ]);
 
-$fileUploadContents->saveOnTable($model);
+$fileUploadContents->rowSave($model);
 
 */
 /**  ===================================================== */
@@ -37,7 +37,7 @@ $fileUploadContents = _Files::upload([
 $model->file_key = _Files::generateKey();
 $model->file_contents = $fileUploadContents->multipleSave();
 
-$fileUploadContents->saveOnTable($model);
+$fileUploadContents->rowSave($model);
 
 */
 /**  ===================================================== */
@@ -53,12 +53,22 @@ use yii\web\Response;
 
 class _Files
 {
-    // ตั้งค่า fiels ของ table ตรงนี้ ถ้าต้องการใช้ table
+    /** ===== ตั้งค่า fiels ของ table ตรงนี้ ถ้าต้องการใช้แบบเก็บทุกไฟล์ใน 1 table ===== */
+
     public $fieldFileKey = 'file_key';
-    public $fieldFileContent = 'file_content';
+    public $fieldFileContent = 'file_contents';
+
+
+    /**  ========== กำหนดชื่อ folder ========== */
+
+    const exampleFolder = '/common/files-storage/';
 
 
 
+
+
+
+    /**  ==================================== */
 
 
 
@@ -152,7 +162,7 @@ class _Files
 
     /** ========== method สุดท้าย เพื่อดึงค่า json file content ที่ถูกสร้าง ========== */
 
-    public function save()
+    public function oneSave()
     {
         return json_encode($this->fileContents[0]);
     }
@@ -326,7 +336,7 @@ class _Files
 
     /** ========== ฟังก์ชั่นบันทึก 1 รูป ต่อ 1 row ========== */
 
-    public function saveOnTable($model)
+    public function rowSave($model)
     {
 
         $fileContent = $this->fileContents;
@@ -456,6 +466,18 @@ class _Files
         return $encodeText;
     }
 
+    public static function render($foldername, $fileName)
+    {
+        try {
+            $response = new Response;
+            $filePath = realpath(dirname(__FILE__) . '/../../') . $foldername . $fileName;
+
+            return $response->sendFile($filePath, $fileName, ['inline' => true]);
+        } catch (\Throwable $th) {
+            throw new \yii\web\HttpException(404, 'File not found.');
+        }
+    }
+
     public static function revealFile($urlEncode)
     {
         try {
@@ -475,6 +497,15 @@ class _Files
             throw new \yii\web\HttpException(404, 'File not found.');
         }
     }
+
+
+
+
+
+
+
+
+    /** ============================ โค้ดเก่า =========================== */
 
     public function downloadFile($fileCode, $originalName = false)
     {
